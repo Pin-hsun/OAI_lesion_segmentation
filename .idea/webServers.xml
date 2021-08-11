@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="b4d972de-24b7-4cf2-bdd5-bd649e8c8d16" name="BRC">
+        <fileTransfer rootFolder="/home/ntuchang2021/Projects/" accessType="SFTP" host="203.145.219.131" port="50061" sshConfigId="1ff6efb1-6b5e-4924-b961-3a69588c78c1" sshConfig="ntuchang2021@203.145.219.131:50061 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="cb8e2526-3954-400f-99d1-244aed290431" name="twcc">
+        <fileTransfer rootFolder="/home/ntuchang2021" accessType="SFTP" host="203.145.219.131" port="50061" sshConfigId="1ff6efb1-6b5e-4924-b961-3a69588c78c1" sshConfig="ntuchang2021@203.145.219.131:50061 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

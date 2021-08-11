@@ -1,0 +1,9 @@
+# Distribution / packaging
+.Python
+.idea/
+dataset/
+logs/
+result/
+Untitled/
+notinuse/
+submodels/
