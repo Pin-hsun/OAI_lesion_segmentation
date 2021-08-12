@@ -1,6 +1,7 @@
 # Distribution / packaging
 *.pyc
 .Python
+core.*
 .idea/
 dataset/
 logs/
