@@ -1,5 +1,6 @@
 import time, os
-from optparse import OptionParser
+#from optparse import OptionParser
+from argparse import ArgumentParser
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from engine.lightning_classification import LitClassification
@@ -17,53 +18,56 @@ def merge_args(args, args_d):
 
 def args_train():
     # Training Parameters
-    parser = OptionParser()
+    parser = ArgumentParser()#OptionParser()
     # Name of the Project
-    parser.add_option('--prj', dest='prj', default='dess_segmentation',
-                      type=str, help='name of the project')
+    parser.add_argument('--prj', dest='prj', default='dess_segmentation',
+                        type=str, help='name of the project')
     # How many epoch to run?
-    parser.add_option('-e', '--epochs', dest='epochs', default=200, type='int',
-                      help='number of epochs')
+    parser.add_argument('-e', '--epochs', dest='epochs', default=200, type=int,
+                        help='number of epochs')
     # Batch size per mini-batch
-    parser.add_option('-b', '--batch-size', dest='batch_size', default=16,
-                      type='int', help='batch size')
+    parser.add_argument('-b', '--batch-size', dest='batch_size', default=16,
+                        type=int, help='batch size')
     # Sometimes we update the model after several minibatch
-    parser.add_option('--bu', '--batch-update', dest='batch_update', default=64,
-                      type='int', help='batch to update')
+    parser.add_argument('--bu', '--batch-update', dest='batch_update', default=64,
+                        type=int, help='batch to update')
     # Learning rate: How fast we want to train the model?
-    parser.add_option('--lr', '--learning-rate', dest='lr', default=0.01,
-                      type='float', help='learning rate')
+    parser.add_argument('--lr', '--learning-rate', dest='lr', default=0.01,
+                        type=float, help='learning rate')
     # Use GPU?
-    parser.add_option('-c', '--cpu', action='store_true', dest='cpu', default=False, help='only use cpu'),
+    parser.add_argument('-c', '--cpu', action='store_true', dest='cpu', default=False, help='only use cpu'),
 
-    parser.add_option("--sv", action="store_true", dest='save_cp', default=False, help='save model parameters'),
-    parser.add_option('-p', '--pred', action='store_true', dest='pred', default=False, help='only evaluate model')
-    parser.add_option('-l', '--load', dest='load',
-                      default=False, help='load saved model parameters')
-    parser.add_option('--par', dest='parallel', action="store_true", help='run in multiple gpus')
-    parser.add_option('-w', '--weight-decay', dest='weight_decay', default=0.0005,
-                      type='float', help='weight decay')
-    parser.add_option('--ini', '--ini-file', dest='ini_file', default='latest',
-                      type=str, help='name of the ini file')
-    parser.add_option('--legacy', action='store_true', dest='legacy', default=True, help='legacy pytorch')
+    parser.add_argument("--sv", action="store_true", dest='save_cp', default=False, help='save model parameters'),
+    parser.add_argument('-p', '--pred', action='store_true', dest='pred', default=False, help='only evaluate model')
+    parser.add_argument('-l', '--load', dest='load',
+                        default=False, help='load saved model parameters')
+    parser.add_argument('--par', dest='parallel', action="store_true", help='run in multiple gpus')
+    parser.add_argument('-w', '--weight-decay', dest='weight_decay', default=0.0005, type=float, help='weight decay')
+    parser.add_argument('--ini', '--ini-file', dest='ini_file', default='latest', type=str, help='name of the ini file')
+    parser.add_argument('--legacy', action='store_true', dest='legacy', default=True, help='legacy pytorch')
 
     # Model Parameters
-    parser.add_option('--backbone', dest='backbone', default='vgg11',
-                      type=str, help='backbone of the UNet')
-    parser.add_option('--depth', dest='depth', default=5,
-                      type=int, help='Number of layers of UNet')
+    parser.add_argument('--backbone', dest='backbone', default='vgg11', type=str, help='backbone of the UNet')
+    parser.add_argument('--depth', dest='depth', default=5, type=int, help='Number of layers of UNet')
 
     # Misc
-    parser.add_option('--mode', type=str, default='dummy')
-    parser.add_option('--port', type=str, default='dummy')
+    parser.add_argument('--mode', type=str, default='dummy')
+    parser.add_argument('--port', type=str, default='dummy')
 
-    (options, args) = parser.parse_args()
-    return options
+    #parser.parse_args()
+    return parser
 
 
 if __name__ == "__main__":
+    # training and model arguments
+    parser = args_train()
+    #print(parser.parse_args())
 
-    args = vars(args_train())
+    from loaders.loader_imorphics import LoaderImorphics as Loader
+    #args = Loader.add_model_specific_args(parser)
+    #print(parser.parse_args())
+
+    args = dict(vars(parser.parse_args()))
     args['dir_checkpoint'] = os.getenv("HOME") + os.environ.get('CHECKPOINTS')
 
     args_d = {'mask_name': 'bone_resize_B_crop_00',
@@ -87,10 +91,9 @@ if __name__ == "__main__":
     train_00, eval_00, train_01, eval_01 = imorphics_split()
 
     # datasets
-    from loaders.loader_imorphics import LoaderImorphics
-    train_set = LoaderImorphics(args_d, subjects_list=train_00)
+    train_set = Loader(args_d, subjects_list=train_00)
     train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, num_workers=16, drop_last=False)
-    eval_set = LoaderImorphics(args_d, subjects_list=eval_00)
+    eval_set = Loader(args_d, subjects_list=eval_00)
     eval_loader = DataLoader(eval_set, batch_size=args['batch_size'], shuffle=False, num_workers=16, drop_last=False)
     print(len(train_set))
     print(len(eval_set))
