@@ -106,5 +106,3 @@ if __name__ == "__main__":
 
 # Usage in command line:
 # CUDA_VISIBLE_DEVICES=0 python train.py -b 16 --bu 64 --lr 0.01
-
-s
