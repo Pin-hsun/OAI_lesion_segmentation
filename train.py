@@ -70,7 +70,7 @@ if __name__ == "__main__":
     # Dataset Arguments
     args_d = {'mask_name': 'bone_resize_B_crop_00',
               'data_path': os.getenv("HOME") + os.environ.get('DATASET'),
-              'mask_used': [[1], [2, 3]],  # ['femur'], ['tibia'],
+              'mask_used': [['femur'], ['tibia']],  #[[1], [2, 3]],  # ['femur'], ['tibia'],
               'scale': 0.5,
               'interval': 1,
               'thickness': 0,

@@ -7,31 +7,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
 
-def to_8bit(x):
-    if type(x) == torch.Tensor:
-        x = (x / x.max() * 255).numpy().astype(np.uint8)
-    else:
-        x = (x / x.max() * 255).astype(np.uint8)
-
-    if len(x.shape) == 2:
-        x = np.concatenate([np.expand_dims(x, 2)]*3, 2)
-    return x
-
-
-def imagesc(x, show=True, save=None):
-    if isinstance(x, list):
-        x = [to_8bit(y) for y in x]
-        x = np.concatenate(x, 1)
-        x = Image.fromarray(x)
-    else:
-        x = x - x.min()
-        x = Image.fromarray(to_8bit(x))
-    if show:
-        x.show()
-    if save:
-        x.save(save)
-
-
 def append_dict(x):
     return [j for i in x for j in i]
 
