@@ -48,6 +48,9 @@ class LitClassification(nn.Module):#pl.LightningModule):
             labels = labels.cuda()
 
         output = self.net(imgs)
+        print(output[0].shape)
+        print(output[1][0].shape)
+        print(labels.shape)
         loss = self.loss_function(output[0], output[1], labels)
         #loss, _ = self.loss_function((output[0][:, 1:, ::], ), labels[:, 0, ::])
         #self.log('train_loss', loss, on_step=False, on_epoch=True,
