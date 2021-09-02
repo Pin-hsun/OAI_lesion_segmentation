@@ -2,6 +2,7 @@ import pytorch_lightning as pl
 import time, torch
 import numpy as np
 import torch.nn as nn
+import os
 
 
 class LitClassification(pl.LightningModule):
@@ -132,4 +133,5 @@ class LitClassification(pl.LightningModule):
             print(' '.join(print_out.keys()).format(*[j for i in print_out.values() for j in i]))
 
             if (epoch % 5) == 0:
+                os.makedirs(self.args['dir_checkpoint'], exist_ok=True)
                 torch.save(self.net, self.args['dir_checkpoint'] + str(epoch) + '.pth')
