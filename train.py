@@ -63,7 +63,7 @@ if __name__ == "__main__":
     #args = Loader.add_model_specific_args(parser)
 
     args = dict(vars(parser.parse_args()))
-    args['dir_checkpoint'] = os.getenv("HOME") + os.environ.get('CHECKPOINTS')
+    args['dir_checkpoint'] = os.environ.get('CHECKPOINTS')
 
     # Datasets
     # Dataset Arguments

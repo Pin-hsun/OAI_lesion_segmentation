@@ -48,8 +48,9 @@ class LitClassification(pl.LightningModule):
 
         output = self.net(imgs)
         loss, _ = self.loss_function(output, labels)
-        self.log('train_loss', loss, on_step=False, on_epoch=True,
-                 prog_bar=True, logger=True, sync_dist=True)
+        if not self.args['legacy']:
+            self.log('train_loss', loss, on_step=False, on_epoch=True,
+                     prog_bar=True, logger=True, sync_dist=True)
 
         return loss
 
@@ -60,26 +61,26 @@ class LitClassification(pl.LightningModule):
             labels = labels.cuda()
         output = self.net(imgs)
         loss, _ = self.loss_function(output, labels)
-        self.log('val_loss', loss, on_step=False, on_epoch=True,
-                 prog_bar=True, logger=True, sync_dist=True)
+        if not self.args['legacy']:
+            self.log('val_loss', loss, on_step=False, on_epoch=True,
+                     prog_bar=True, logger=True, sync_dist=True)
 
         # metrics
         self.all_label.append(labels.cpu())
-        #self.all_out.append(nn.Softmax(dim=1)(output[0]).cpu().detach())
         self.all_out.append(output[0].cpu().detach())
 
         return loss
 
     # def training_epoch_end(self, x):
     def validation_epoch_end(self, x):
-        #print(time.time() - self.tini)
         all_out = torch.cat(self.all_out, 0)
         all_label = torch.cat(self.all_label, 0)
         metrics = self.get_metrics(all_label, all_out)
 
         auc = torch.from_numpy(np.array(metrics)).cuda()
-        for i in range(len(auc)):
-            self.log('auc' + str(i), auc[i], on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        if not self.args['legacy']:
+            for i in range(len(auc)):
+                self.log('auc' + str(i), auc[i], on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         self.all_label = []
         self.all_out = []
 
