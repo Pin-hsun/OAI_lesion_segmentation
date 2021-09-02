@@ -34,7 +34,7 @@ def args_train():
     parser.add_argument('--par', dest='parallel', action="store_true", help='run in multiple gpus')
     parser.add_argument('-w', '--weight-decay', dest='weight_decay', default=0.0005, type=float, help='weight decay')
     parser.add_argument('--ini', '--ini-file', dest='ini_file', default='latest', type=str, help='name of the ini file')
-    parser.add_argument('--legacy', action='store_true', dest='legacy', default=True, help='legacy pytorch')
+    parser.add_argument('--legacy', action='store_true', dest='legacy', default=False, help='legacy pytorch')
 
     # Model Parameters
     parser.add_argument('--backbone', dest='backbone', default='vgg11', type=str, help='backbone of the UNet')

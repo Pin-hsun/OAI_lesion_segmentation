@@ -1,14 +1,14 @@
-#import pytorch_lightning as pl
+import pytorch_lightning as pl
 import time, torch
 import numpy as np
 import torch.nn as nn
 
 
-class LitClassification(nn.Module):#pl.LightningModule):
+class LitClassification(pl.LightningModule):
     def __init__(self, args, train_loader, eval_loader, net, loss_function, metrics):
         super().__init__()
 
-        self.hparams = args
+        self.hparams.update(args)
 
         self.args = args
         self.train_loader = train_loader
@@ -48,8 +48,8 @@ class LitClassification(nn.Module):#pl.LightningModule):
 
         output = self.net(imgs)
         loss, _ = self.loss_function(output, labels)
-        #self.log('train_loss', loss, on_step=False, on_epoch=True,
-        #         prog_bar=True, logger=True, sync_dist=True)
+        self.log('train_loss', loss, on_step=False, on_epoch=True,
+                 prog_bar=True, logger=True, sync_dist=True)
 
         return loss
 
@@ -60,8 +60,8 @@ class LitClassification(nn.Module):#pl.LightningModule):
             labels = labels.cuda()
         output = self.net(imgs)
         loss, _ = self.loss_function(output, labels)
-        #self.log('val_loss', loss, on_step=False, on_epoch=True,
-        #         prog_bar=True, logger=True, sync_dist=True)
+        self.log('val_loss', loss, on_step=False, on_epoch=True,
+                 prog_bar=True, logger=True, sync_dist=True)
 
         # metrics
         self.all_label.append(labels.cpu())
@@ -77,12 +77,11 @@ class LitClassification(nn.Module):#pl.LightningModule):
         all_label = torch.cat(self.all_label, 0)
         metrics = self.get_metrics(all_label, all_out)
 
-        #auc = torch.from_numpy(np.array(metrics)).cuda()
-        #for i in range(len(auc)):
-        #    self.log('auc' + str(i), auc[i], on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        auc = torch.from_numpy(np.array(metrics)).cuda()
+        for i in range(len(auc)):
+            self.log('auc' + str(i), auc[i], on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         self.all_label = []
         self.all_out = []
-
 
         self.tini = time.time()
         return metrics

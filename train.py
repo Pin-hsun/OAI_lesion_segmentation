@@ -5,9 +5,9 @@ import torch.nn as nn
 from engine.lightning_classification import LitClassification
 from dotenv import load_dotenv
 load_dotenv('.env')
-#from pytorch_lightning.callbacks import ModelCheckpoint
-#import pytorch_lightning as pl
-#from pytorch_lightning import loggers as pl_loggers
+from pytorch_lightning.callbacks import ModelCheckpoint
+import pytorch_lightning as pl
+from pytorch_lightning import loggers as pl_loggers
 
 
 def train(net, args, train_set, eval_set, loss_function, metrics):
@@ -43,12 +43,11 @@ def train(net, args, train_set, eval_set, loss_function, metrics):
             filename='{epoch}-{val_loss:.2f}-{other_metric:.2f}',
             verbose=True,
             monitor='val_loss',
-            mode='min',
-            prefix=''
+            mode='min'
         )
         # we can use loggers (from TensorBoard) to monitor the progress of training
         tb_logger = pl_loggers.TensorBoardLogger('logs/' + args['prj'] + '/')
-        trainer = pl.Trainer(gpus=4, accelerator='ddp',
+        trainer = pl.Trainer(gpus=1, accelerator='ddp',
                              max_epochs=100, progress_bar_refresh_rate=20, logger=tb_logger,
                              callbacks=[checkpoint_callback])
         trainer.fit(ln_classification, train_loader, eval_loader)
@@ -70,7 +69,7 @@ if __name__ == "__main__":
     # Dataset Arguments
     args_d = {'mask_name': 'bone_resize_B_crop_00',
               'data_path': os.getenv("HOME") + os.environ.get('DATASET'),
-              'mask_used': [['femur'], ['tibia']],  #[[1], [2, 3]],  # ['femur'], ['tibia'],
+              'mask_used': [['femur'], ['tibia'], ['1'], ['2', '3']],  #[[1], [2, 3]],  # ['femur'], ['tibia'],
               'scale': 0.5,
               'interval': 1,
               'thickness': 0,
@@ -105,4 +104,4 @@ if __name__ == "__main__":
     train(net, args, train_set, eval_set, loss_function, metrics)
 
 # Usage in command line:
-# CUDA_VISIBLE_DEVICES=0 python train.py -b 16 --bu 64 --lr 0.01
+# CUDA_VISIBLE_DEVICES=0 python train.py -b 16 --bu 64 --lr 0.01 --legacy
