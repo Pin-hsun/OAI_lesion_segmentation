@@ -3,21 +3,31 @@ import os
 from utils.imagesc import imagesc
 from dotenv import load_dotenv
 load_dotenv('.env')
-from loaders.loader_imorphics import LoaderImorphics as Loader
+from loaders.loader_annotation import LoaderImorphics as Loader
 
 
-args_d = {'mask_name': 'bone_resize_B_crop_00',
-          'data_path': os.getenv("HOME") + os.environ.get('DATASET'),
-          'mask_used': [['femur'], ['tibia']],  # [[1], [2, 3]],  # ['femur'], ['tibia'],
-          'scale': 0.5,
+# args_d = {'mask_name': 'bone_resize_B_crop_00',
+#           'data_path': os.getenv("HOME") + os.environ.get('DATASET'),
+#           'mask_used': [['femur'], ['tibia']],  # [[1], [2, 3]],  # ['femur'], ['tibia'],
+#           'scale': 0.5,
+#           'interval': 1,
+#           'thickness': 0,
+#           'method': 'automatic'}
+args_d = {'mask_name': 'pin',
+          'data_path': os.environ.get('DATASET'),
+          'mask_used': [['png']],  # [[1], [2, 3]],  # ['femur'], ['tibia'],
+          'scale': 1,
           'interval': 1,
           'thickness': 0,
           'method': 'automatic'}
 
-
 def imorphics_split():
-    train_00 = list(range(10, 71))
-    eval_00 = list(range(1, 10)) + list(range(71, 89))
+    DIR = args_d['data_path'] + '/img'
+    cnt = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
+    train_00 = list(range(0, cnt - 100))
+    eval_00 = list(range(cnt - 100, cnt))
+    # train_00 = list(range(10, 71))
+    # eval_00 = list(range(1, 10)) + list(range(71, 89))
     train_01 = list(range(10 + 88, 71 + 88))
     eval_01 = list(range(1 + 88, 10 + 88)) + list(range(71 + 88, 89 + 88))
     return train_00, eval_00, train_01, eval_01
@@ -42,7 +52,7 @@ def simple_test():
     print(y.shape)
 
     #
-    model = torch.load('checkpoints/190.pth')
+    model = torch.load('checkpoints/25.pth')
     out, = model(x.unsqueeze(0).cuda())
     print(out.shape)
     segmentation = torch.argmax(out, 1).detach().cpu()

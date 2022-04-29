@@ -3,7 +3,7 @@ import time, torch
 import numpy as np
 import torch.nn as nn
 import os
-
+from utils.imagesc import imagesc
 
 class LitClassification(pl.LightningModule):
     def __init__(self, args, train_loader, eval_loader, net, loss_function, metrics):
@@ -33,11 +33,11 @@ class LitClassification(pl.LightningModule):
         self.all_out = []
 
     def configure_optimizers(self):
-        #optimizer = torch.optim.Adam(self.net.parameters(), lr=1e-4, weight_decay=self.args['weight_decay'])
-        optimizer = torch.optim.SGD(list(set(self.net.parameters()) - set(self.net.par_freeze)),
-                                    lr=self.args['lr'],
-                                    momentum=0.9,
-                                    weight_decay=self.args['weight_decay'])
+        optimizer = torch.optim.Adam(self.net.parameters(), lr=1e-5, weight_decay=self.args['weight_decay'])
+        # optimizer = torch.optim.SGD(list(set(self.net.parameters()) - set(self.net.par_freeze)),
+        #                             lr=self.args['lr'],
+        #                             momentum=0.9,
+        #                             weight_decay=self.args['weight_decay'])
         return optimizer
 
     def training_step(self, batch, batch_idx=0):
@@ -68,7 +68,16 @@ class LitClassification(pl.LightningModule):
 
         # metrics
         self.all_label.append(labels.cpu())
-        self.all_out.append(output[0].cpu().detach())
+        # self.all_out.append(output[0].cpu().detach())
+        self.all_out.append(output.cpu().detach())
+
+        imgs = torch.cat([(imgs[i, 0, ::] / imgs[i, 0, ::].max()) * 255 for i in range(imgs.shape[0])], 1).detach().cpu()
+        labels = torch.cat([labels[i, 0, ::] * 255 / 4 for i in range(labels.shape[0])], 1).detach().cpu()
+        masks_probs = output.permute(0, 2, 3, 1)
+        _, masks_pred = torch.max(masks_probs, 3)
+        masks_pred = torch.cat([masks_pred[i, ::] * 255 / 4 for i in range(masks_pred.shape[0])], 1).detach().cpu()
+        all = torch.cat([imgs, masks_pred, labels], 0)
+        imagesc(all, show=False, save='sample_visualization.png')
 
         return loss
 

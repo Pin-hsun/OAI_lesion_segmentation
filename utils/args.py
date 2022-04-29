@@ -44,4 +44,9 @@ def args_train():
     parser.add_argument('--mode', type=str, default='dummy')
     parser.add_argument('--port', type=str, default='dummy')
 
+    # tio augmentation
+    parser.add_argument('--aug', nargs='*', type=str, help='tio augmentation: aff, ela, gam, noi, mot, bia, spa')
+    parser.add_argument('--ap', type=float, default=1, help='augmentation probability')
+    parser.add_argument('--crop', action='store_true', default=False, help='RandomCrop 256')
+
     return parser

@@ -8,6 +8,7 @@ load_dotenv('.env')
 from pytorch_lightning.callbacks import ModelCheckpoint
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
+import random
 
 
 def train(net, args, train_set, eval_set, loss_function, metrics):
@@ -45,32 +46,32 @@ def train(net, args, train_set, eval_set, loss_function, metrics):
             monitor='val_loss',
             mode='min'
         )
+        # Ray_callbacks = TuneReportCallback(metrics, on="validation_end")
         # we can use loggers (from TensorBoard) to monitor the progress of training
         tb_logger = pl_loggers.TensorBoardLogger('logs/' + args['prj'] + '/')
         trainer = pl.Trainer(gpus=1, accelerator='ddp',
-                             max_epochs=100, progress_bar_refresh_rate=20, logger=tb_logger,
+                             max_epochs=200, progress_bar_refresh_rate=10, logger=tb_logger,
                              callbacks=[checkpoint_callback])
         trainer.fit(ln_classification, train_loader, eval_loader)
 
 
 if __name__ == "__main__":
-    from loaders.loader_imorphics import LoaderImorphics as Loader
+    from loaders.loader_annotation import LoaderImorphics as Loader
     from models.unet import UNet_clean
     from utils.metrics_segmentation import SegmentationCrossEntropyLoss, SegmentationDiceCoefficient
 
     # Training Arguments
     parser = args_train()
-    #args = Loader.add_model_specific_args(parser)
-
     args = dict(vars(parser.parse_args()))
     args['dir_checkpoint'] = os.environ.get('CHECKPOINTS')
 
     # Datasets
     # Dataset Arguments
-    args_d = {'mask_name': 'bone_resize_B_crop_00',
-              'data_path': os.getenv("HOME") + os.environ.get('DATASET'),
-              'mask_used': [['femur'], ['tibia'], ['1'], ['2', '3']],  #[[1], [2, 3]],  # ['femur'], ['tibia'],
-              'scale': 0.5,
+    args_d = {'mask_name': 'pin',
+              # 'data_path': os.getenv("HOME") + os.environ.get('DATASET'),
+              'data_path': os.environ.get('DATASET'),
+              'mask_used': [['png']],  #[[1], [2, 3]],  # ['femur'], ['tibia'],
+              'scale': 1,
               'interval': 1,
               'thickness': 0,
               'method': 'automatic'}
@@ -79,8 +80,13 @@ if __name__ == "__main__":
 
     # Splitting Subjects
     def imorphics_split():
-        train_00 = list(range(10, 71))
-        eval_00 = list(range(1, 10)) + list(range(71, 89))
+        DIR = args['data_path'] + '/img'
+        cnt = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
+        random.seed(42)
+        eval_00 = random.sample(range(0, cnt), 100)
+        train_00 = list(set(range(0, cnt)) - set(eval_00))
+        # train_00 = list(range(0, cnt-100))
+        # eval_00 = list(range(cnt-100, cnt))
         train_01 = list(range(10+88, 71+88))
         eval_01 = list(range(1+88, 10+88)) + list(range(71+88, 89+88))
         return train_00, eval_00, train_01, eval_01
@@ -88,15 +94,19 @@ if __name__ == "__main__":
     train_00, eval_00, train_01, eval_01 = imorphics_split()
 
     # Dataloader
-    train_set = Loader(args_d, subjects_list=train_00)
-    eval_set = Loader(args_d, subjects_list=eval_00)
+    train_set = Loader(args, subjects_list=train_00, mode='train')
+    eval_set = Loader(args, subjects_list=eval_00, mode='eval')
     print('Length of training set')
     print(len(train_set))
     print('Length of Validation set')
     print(len(eval_set))
 
     # Model, Loss Function, Metrics
-    net = UNet_clean(output_ch=len(args_d['mask_used']) + 1, backbone=args['backbone'], depth=args['depth'])
+    # old API
+    # net = UNet_clean(output_ch=len(args_d['mask_used']) + 1, backbone=args['backbone'], depth=args['depth'])
+    # new API
+    from segmentation_models_pytorch.unet import Unet
+    net = Unet(encoder_name='vgg11', classes=len(args_d['mask_used']) + 1, activation=None, encoder_depth=5)
     loss_function = SegmentationCrossEntropyLoss()
     metrics = SegmentationDiceCoefficient()
 
@@ -104,4 +114,4 @@ if __name__ == "__main__":
     train(net, args, train_set, eval_set, loss_function, metrics)
 
 # Usage in command line:
-# CUDA_VISIBLE_DEVICES=0 python train.py -b 16 --bu 64 --lr 0.01 --legacy
+# CUDA_VISIBLE_DEVICES=2 python train.py -b 16 --bu 64 --lr 0.001 --legacy

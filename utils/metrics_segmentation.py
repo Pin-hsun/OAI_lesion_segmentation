@@ -12,7 +12,8 @@ class SegmentationCrossEntropyLoss(nn.Module):
         return 1
 
     def forward(self, output, labels):
-        out = output[0]
+        # out = output[0]
+        out = output
         true_masks = labels
         masks_probs = out.permute(0, 2, 3, 1)  # (B, H, W, C)
         masks_probs = masks_probs.reshape(masks_probs.shape[0] * masks_probs.shape[1] * masks_probs.shape[2],
